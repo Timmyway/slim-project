@@ -4,10 +4,10 @@
 <div class="cards-galery">
     <div class="card" style="width: 18rem;" v-for="(card,index) in filteredCards" :key="index">
         <div class="card-body">
-            <h5 class="card-title font-weight-bold">{{ card.title }}</h5>
-            <p class="card-text">{{ card.description }}</p>
+            <h5 class="card-title font-weight-bold">[[ card.title ]]</h5>
+            <p class="card-text">[[ card.description ]]</p>
             <div class="card__links">
-                <a :href="service.url" class="btn btn-primary btn-sm mb-1" v-for="service in card.urls" :key="service.name" target="_blank">Visiter {{ service.name }}</a>
+                <a :href="service.url" class="btn btn-primary btn-sm mb-1" v-for="service in card.urls" :key="service.name" target="_blank">Visiter [[ service.name ]]</a>
             </div>
         </div>
     </div>
@@ -17,6 +17,7 @@
 <script>
     var vm = new Vue({
         el: '#app',
+        delimiters: ['[[', ']]'],
         data() {
             return {
                 searchService: '',
