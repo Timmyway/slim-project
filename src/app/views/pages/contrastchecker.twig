@@ -1,0 +1,499 @@
+{% extends "base.html" %}
+{% block head %}
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, minimal-ui">
+	<title>Front helper</title>
+	<link href="https://fonts.googleapis.com/css?family=Roboto:100,300,400,500,700,900" rel="stylesheet">		
+	<link href="https://cdn.jsdelivr.net/npm/vuetify@2.x/dist/vuetify.min.css" rel="stylesheet">
+	<link href="https://cdn.jsdelivr.net/npm/@mdi/font@4.x/css/materialdesignicons.min.css" rel="stylesheet">		
+	<!-- Import Vuetify and material design -->
+	<link rel="stylesheet" href="{{ base_url() }}/assets/css/style.css">
+	<style>
+		:root {
+		  --main-color: #1e90ff;
+		  --sec-color: #ffffff;
+		}
+		.position-relative {position: relative;}
+		.bg-main {background: var(--main-color);}
+		.bg-sec {background: var(--sec-color);}
+
+		.box-container {
+			padding: 15px; background: #333;
+			display: flex; justify-content: center;				
+			align-self: center;
+		}
+		.box {width: 100%; height: 480px; display: flex; align-items: center; justify-content: center; text-align: center;}
+		.command-bar {
+			display: flex;				
+		}
+		.command-bar__item {
+			margin: 0 5px;
+		}
+		.sidebar {
+			position: fixed;
+			min-width: 200px;
+			max-width: 200px;
+			padding: 0 5px;
+			height: 100vh;
+			top: 0;
+			right: 0;
+			display: flex;
+			flex-direction: row;
+			background: rgba(3,169,244,.2);				
+			z-index: 9999;
+		}
+	</style>
+{%  endblock %}	
+{% block app %}
+	<v-app id="app">
+		<v-main class="app-content">
+			<div class="command-bar">
+				<v-btn class="command-bar__item" fab small @click="display.sidebar = !display.sidebar">
+					<v-icon dark>[[ display.sidebar ? 'mdi-page-layout-sidebar-right' : 'mdi-dock-right' ]]</v-icon>
+				</v-btn>
+			</div>
+			<div class="sidebar d-flex flex-column" v-if="display.sidebar">
+				<h6>Contrast values</h6>
+				<div class="contrast__label d-flex align-items-center">
+					<div  class="box-24px" :style="{background: formatedFgcolor}"></div>
+					<v-chip
+					class="ma-2 bg-main"
+					label
+					:style="{background: contrastBgFg < 4.5 ? '#FF7D7D' : '#89FF81'}"
+					>
+					[[ contrastBgFg ]]:1 - BG/FG
+					</v-chip>
+				</div>
+				<div class="contrast__label d-flex align-items-center">
+					<div  class="box-24px" style="background-color: white;"></div>
+					<v-chip
+					class="ma-2 bg-main"
+					label
+					:style="{background: contrastLight < 4.5 ? '#FF7D7D' : '#89FF81'}"
+					>
+					[[ contrastLight ]]:1 - BG/White
+					</v-chip>
+				</div>
+				<div class="contrast__label d-flex align-items-center">
+					<div class="box-24px" style="background-color: black;"></div>
+					<v-chip
+						class="ma-2 bg-main"
+						label
+						:style="{background: contrastDark < 4.5 ? '#FF7D7D' : '#89FF81'}"
+					>
+					[[ contrastDark ]]:1 - BG/Black
+					</v-chip>
+				</div>					
+			</div>
+			<v-container>
+				<v-row>
+					<v-col>
+						<h4>Background - [[ formatedBgcolor ]]</h4>
+						<div class="command-bar">
+							<v-btn class="command-bar__item" fab small @click="display.bgswatches = !display.bgswatches">
+								<v-icon dark>[[ display.bgswatches ? 'mdi-palette' : 'mdi-palette-outline' ]]</v-icon>
+							</v-btn>
+							<v-select
+								class="command-bar__item" 
+								v-model="bgcolorInfos.type"
+								hint="Type of color"
+								:items="bgcolorInfos.types"		
+								label="Type"
+								single-line
+					        ></v-select>
+					    </div>
+							<v-color-picker
+						      class="ma-2"
+						      dot-size="30"
+						      label="Background"
+						      mode="rgba"
+						      :show-swatches="display.bgswatches"
+						      v-model="bgcolor"
+						    ></v-color-picker>							
+					</v-col>
+					<v-col>							
+						<h4>Foreground - [[ formatedFgcolor ]]</h4>
+						<div class="command-bar">
+							<v-btn class="command-bar__item" fab small @click="display.fgswatches = !display.fgswatches">
+								<v-icon dark>[[ display.fgswatches ? 'mdi-palette' : 'mdi-palette-outline' ]]</v-icon>
+							</v-btn>
+							<v-select
+								class="command-bar__item" 
+								v-model="fgcolorInfos.type"
+								hint="Type of color"
+								:items="fgcolorInfos.types"		
+								label="Type"
+								single-line
+					        ></v-select>
+					    </div>
+					    <v-color-picker
+					      class="ma-2"
+					      dot-size="30"
+					      label="Foreground"
+					      mode="rgba"
+					      :show-swatches="display.fgswatches"
+					      v-model="fgcolor"
+					    ></v-color-picker>
+					</v-col>
+				</v-row>
+				<v-container class="box-container position-relative">
+					<v-btn @click="box.isSquare = !box.isSquare" fab small style="position: absolute; top: 1%; right: 1%;">
+						<v-icon>[[ box.isSquare ? 'mdi-rectangle-outline' : 'mdi-crop-square' ]]</v-icon>
+					</v-btn>
+					<div class="box" 
+						:style="{background: formatedBgcolor, color: formatedFgcolor, borderRadius: border.radius + '%', width: box.isSquare ? '480px' : '100%'}"
+					>
+						<p :style="{fontSize: text.size + 'px', color: formatedFgcolor, fontWeight: text.weight, textDecoration: text.style, fontFamily: text.fontFamily}">
+							[[ text.content ]]
+						</p>
+					</div>
+				</v-container>
+				<!-- Border radius -->
+				<v-container>
+					<h4>Border radius ([[ border.radius ]]%)</h4>
+					<v-slider
+						hint="Im a hint"
+						color="darkgrey"
+						thumb-label="always"						
+						max="50"
+						min="0"
+						v-model="border.radius"
+						label="Border radius"
+						class="w-20p"
+					></v-slider>						
+				</v-container>
+				<!-- Text -->
+			<v-container>					
+				<h4>Text ([[ text.size + text.unit ]])</h4>
+				<v-container class="command-bar">
+					<v-select
+						class="command-bar__item"
+						:items="['px', 'rem', 'em', 'pt', '%']"
+						label="Unit"
+						dense
+						v-model="text.unit"
+						class="w-100px"
+					></v-select>
+					<v-select
+						class="command-bar__item"
+						:items="['normal', 'bold', 'bolder']"
+						label="Weight"
+						dense
+						v-model="text.weight"
+						class="w-100px"
+					></v-select>
+					<v-select
+						class="command-bar__item"
+						:items="['none', 'underline', 'overline', 'line-through', 'blink']"
+						label="Style"
+						dense
+						v-model="text.style"
+						class="w-100px"
+					></v-select>
+					<v-autocomplete
+						class="command-bar__item"
+						:items="fontList"
+						label="Font Family"
+						dense
+						v-model="text.fontFamily"
+						class="w-100px"
+					></v-autocomplete>
+				</v-container>
+				<v-slider
+					hint="Im a hint"
+					color="darkgrey"
+					thumb-color="indigo"
+					thumb-label="always"
+					:max="textMaxSize"
+					min="1"
+					v-model="text.size"
+					:label="'Size' + text.size"
+					class="w-20p"
+				></v-slider>				
+			<div v-if="display.debug" class="debug">
+			    <!-- <p>Background: [[ formatedBgcolor ]]</p>
+			    <p>Foreground: [[ formatedFgcolor ]]</p> -->
+			    <!-- [[ getColor('bg') ]]
+			    [[ getColor('fg') ]] -->
+			  </div>			    
+		    <!-- <v-btn @click="getContrast()">Contrast</v-btn> -->
+		</v-main>
+	</v-app>
+{% endblock %}
+
+{% block vue %}
+	<script src="{{ base_url() }}/assets/js/contrast_checker.js"></script>		
+	<script src="https://cdn.jsdelivr.net/npm/vuetify@2.x/dist/vuetify.js"></script>
+	<script>
+		class Helper {
+
+			static copy(elemID) {
+			  /* Get the text field */
+			  var copyText = document.getElementById(elemID);
+			  /* Select the text field */
+			  copyText.select();
+			  copyText.setSelectionRange(0, 99999); /*For mobile devices*/
+			  /* Copy the text inside the text field */
+			  document.execCommand("copy");
+			  /* Alert the copied text */
+			  alert("Copied the text: " + copyText.value);
+			}
+		}
+		class ColorHelper {
+
+			static getLuminance(r8bit, g8bit, b8bit) {
+				/* Calculate relative luminance of a color
+					Formula used: Y = 0.2126R + 0.7152G + 0.0722B
+				*/
+				console.log('#1 Calculate luminance')
+				// Only allow valid RGB colors		
+				if ((r8bit < 0 || r8bit > 255) || (g8bit < 0 || g8bit > 255) || (b8bit < 0 || b8bit > 255)) {
+					console.log('Invalid RGB color')
+					return
+				}
+				const RsRGB = r8bit / 255;
+				const GsRGB = g8bit / 255;
+				const BsRGB = b8bit / 255;
+
+				const R = (RsRGB <= 0.03928) ? RsRGB / 12.92 : Math.pow((RsRGB + 0.055) / 1.055, 2.4);
+				const G = (GsRGB <= 0.03928) ? GsRGB / 12.92 : Math.pow((GsRGB + 0.055) / 1.055, 2.4);
+				const B = (BsRGB <= 0.03928) ? BsRGB / 12.92 : Math.pow((BsRGB + 0.055) / 1.055, 2.4);
+				const lum = 0.2126 * R + 0.7152 * G + 0.0722 * B;
+				console.log(`## Luminance of rgb(${r8bit},${g8bit},${b8bit}): ${lum}`);
+				return lum;
+			}
+			
+			
+			static getContrast(bg, fg) {
+				/* Calculate contrast between two colors 
+					Formula: (lighter + 0.05) / (darker + 0.05)
+				*/
+				console.log('* Calculate contrast')
+				// Calculate luminances
+				const bgLum = ColorHelper.getLuminance(...bg);
+				const fgLum = ColorHelper.getLuminance(...fg);
+				console.log('Foreground luminance:', fgLum);
+				console.log('Background luminance:', bgLum);
+				// Only continue if both luminance values are good
+				if (bgLum === undefined || fgLum === undefined) {
+					console.log('Invalid input color');
+					return
+				}
+				const lighter = Math.max(...[bgLum, fgLum]);
+				const darker = Math.min(...[bgLum, fgLum]);
+				console.log(`* Lighter lum: ${lighter}\n* Darker lum: ${darker}`);
+				const contrast = (lighter + 0.05) / (darker + 0.05);
+				console.log(`-> Contrast: ${Math.round((contrast + Number.EPSILON) * 100) / 100}:1`);
+				return Math.round((contrast + Number.EPSILON) * 100) / 100;
+			}
+
+			static convertHexToRGBA(hexCode, opacity) {
+			    let hex = hexCode.replace('#', '');
+			    
+			    if (hex.length === 3) {
+			        hex = `${hex[0]}${hex[0]}${hex[1]}${hex[1]}${hex[2]}${hex[2]}`;
+			    }    
+			    
+			    const r = parseInt(hex.substring(0, 2), 16);
+			    const g = parseInt(hex.substring(2, 4), 16);
+			    const b = parseInt(hex.substring(4, 6), 16);
+
+			    return {r, g, b, a: opacity};
+			}
+		}
+		new Vue({
+			el: '#app',				
+			vuetify: new Vuetify(),
+			delimiters: ['[[', ']]'],
+			data: {						
+				fontList: window.fontsFamily,
+				display: {
+					drawer: false,
+					bgswatches: true,
+					fgswatches: true,
+					sidebar: true,
+					debug: false
+				},
+				box: {
+					isSquare: true
+				},
+				bgcolorInfos: {
+					types: ['hex', 'hexa', 'rgba'],
+					type: 'rgba',
+					hex: '#FFE66D',
+					hexa: '#FFE66DFF',
+					rgba: { r: 255, g: 230, b: 109, a: 1 }						
+				},
+				fgcolorInfos: {
+					types: ['hex', 'hexa', 'rgba'],
+					type: 'rgba',
+					hex: '#000000',
+					hexa: '#000000FF',
+					rgba: { r: 0, g: 0, b: 0, a: 1 }						
+				},					
+				border: {
+					radius: 4
+				},
+				text: {
+					content: 'Front-end is COOL',
+					size: 32,				
+					color: 'white',
+					unit: 'px',
+					weight: 'normal',
+					style: 'none',
+					fontFamily: 'Arial'
+				},				
+			},		
+			mounted() {
+				// ColorHelper.getContrast([69,184,196], [255, 255, 255])
+				console.log('Mounted')					
+			},				
+			computed: {
+				textMaxSize() {
+					switch (this.text.unit) {
+						case 'px':
+							return 300;
+							break;
+						case '%':
+							return 100;
+							break;
+						case 'em':
+							return 300;
+							break;
+						case 'rem':
+							return 300;
+							break;
+						default:
+							return 500
+							break;
+					}					
+				},
+				contrastBgFg() {
+					return this.checkThenConvert(this.bgcolor, this.fgcolor);
+				},
+				contrastLight() {
+					return this.checkThenConvert(this.bgcolor, {r: 255, g: 255, b: 255});
+				},
+				contrastDark() {
+					return this.checkThenConvert(this.bgcolor, {r: 0, g: 0, b: 0});
+				},
+				bgcolor: {
+					get() {
+						console.log('BGCOLOR: ', this.bgcolorInfos[this.bgcolorInfos.type])
+						return this.bgcolorInfos[this.bgcolorInfos.type];
+					},
+					set(v) {
+						this.bgcolorInfos[this.bgcolorInfos.type] = v;
+					}
+				},
+				fgcolor: {
+					get() {
+						console.log(this.fgcolorInfos)
+						console.log('FGCOLOR: ', this.fgcolorInfos[this.fgcolorInfos.type])
+						return this.fgcolorInfos[this.fgcolorInfos.type];
+					},
+					set(v) {
+						this.fgcolorInfos[this.fgcolorInfos.type] = v;
+					}
+				},
+				formatedBgcolor () {
+			        if (typeof this.bgcolor === 'string') return this.bgcolor
+
+			        return `rgba(${this.bgcolor.r},${this.bgcolor.g},${this.bgcolor.b},${this.bgcolor.a})`;
+			    },
+			    formatedFgcolor () {
+			        if (typeof this.fgcolor === 'string') return this.fgcolor
+
+			        return `rgba(${this.fgcolor.r},${this.fgcolor.g},${this.fgcolor.b},${this.fgcolor.a})`;
+			    }
+			},
+			methods: {
+				copy(elemRef) {
+					/* Get the text field */
+					var copyText = this.$refs[elemRef];
+					/* Select the text field */
+					copyText.select();
+					copyText.setSelectionRange(0, 99999); /*For mobile devices*/
+					/* Copy the text inside the text field */
+					document.execCommand("copy");
+					/* Alert the copied text */						
+				},
+				// getColor(from) {						
+				// 	switch (from) {
+				// 		case 'bg':
+				// 			if (this.bgcolor.rgba === undefined) {
+				// 				console.log('========> Got undefined background');
+				// 				return
+				// 			}
+				// 			return `rgb(${this.bgcolor.rgba.r}, ${this.bgcolor.rgba.g}, ${this.bgcolor.rgba.b})`;
+				// 			break;
+				// 		case 'fg':
+				// 			if (this.fgcolor.rgba === undefined) {
+				// 				console.log('========> Got undefined foreground');
+				// 				return
+				// 			}
+				// 			return `rgb(${this.fgcolor.rgba.r}, ${this.fgcolor.rgba.g}, ${this.fgcolor.rgba.b})`;
+				// 			break;							
+				// 	}						
+				// },					
+				getContrast(dark=false) {
+					if (typeof this.bgcolor === 'string') {
+						var convertedBgcolor = ColorHelper.convertHexToRGBA(this.bgcolor, 1);
+					} else {
+						var convertedBgcolor = this.bgcolor;
+					}
+					if (typeof this.fgcolor === 'string') {
+						var convertedFgcolor = ColorHelper.convertHexToRGBA(this.fgcolor, 0.1);
+					} else {
+						var convertedFgcolor = this.fgcolor;
+					}					
+					console.log('DEBUG original colors', this.bgcolor, this.fgcolor);
+					console.log('DEBUG converted colors', convertedBgcolor, convertedFgcolor);
+					if (this.bgcolor === undefined || this.fgcolor === undefined) {
+						console.log('=======> One or both Bgcolor or Fgcolor are undefined');
+						return
+					}
+					this.contrast = ColorHelper.getContrast(
+						Object.values(convertedBgcolor).slice(0, 3), 
+						Object.values(convertedFgcolor).slice(0, 3), 
+					);
+				},
+				checkThenConvert(c1, c2) {
+					if (typeof c1 === 'string') {
+						var c1ConvertedColor = ColorHelper.convertHexToRGBA(c1, 1);
+					} else {
+						var c1ConvertedColor = c1;
+					}
+					if (typeof c2 === 'string') {
+						var c2ConvertedColor = ColorHelper.convertHexToRGBA(c2, 1);
+					} else {
+						var c2ConvertedColor = c2;
+					}
+					console.log('DEBUG converted colors', c1ConvertedColor, c2ConvertedColor);
+					console.log('DEBUG original colors', c1, c2);
+
+					if (c1 === undefined || c2 === undefined) {
+						console.log('=======> One or both C1 or C2 are undefined');
+						return
+					}
+					const contrast = ColorHelper.getContrast(
+						Object.values(c1ConvertedColor).slice(0, 3), 
+						Object.values(c2ConvertedColor).slice(0, 3), 
+					);	
+					return contrast;
+				},
+				debounce(callback, delay){
+				    var timer;
+				    return function(){
+				        var args = arguments;
+				        var context = this;
+				        clearTimeout(timer);
+				        timer = setTimeout(function(){
+				            callback.apply(context, args);
+				        }, delay)
+				    }
+				}
+			}
+		});
+	</script>
+{% endblock %}

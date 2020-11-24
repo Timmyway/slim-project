@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+	<head>
+		{% block head %}
+		    <meta charset="UTF-8">
+			<meta name="viewport" content="width=device-width, initial-scale=1.0">
+			<meta property="og:title" content="Utilitaire polyvalent" />
+			<meta property="og:url" content="http://testim.kontikimedia.fr/tools/b64.php" />
+			<meta property="og:image" content="http://testim.kontikimedia.fr/tools/assets/images/favicon.png" />
+			<meta property="og:description" content="Simplifier les tâches du Web courantes" />
+		    <title>{% block title %}{% endblock %} - Utilitaires</title>
+		    <link rel="icon" type="image/png" href="./assets/images/favicon.png" />
+		    <!-- Libraries -->    	
+		    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/css/bootstrap.min.css" integrity="sha384-TX8t27EcRE3e/ihU7zmQxVncDAy5uIKz4rEkgIXeMed4M0jlfIDPvg6uqKI2xXr2" crossorigin="anonymous">
+		    	<!-- Animatecss -->
+		    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
+		    <!-- App -->
+		    <link rel="stylesheet" href="{{ base_url() }}/assets/css/style.css">
+		    <!-- Fonts -->
+		    <link rel="preconnect" href="https://fonts.gstatic.com">
+			<link href="https://fonts.googleapis.com/css2?family=Noto+Serif&family=Press+Start+2P&display=swap" rel="stylesheet">			
+		{% endblock %}
+	</head>
+
+	<body>		
+		<header>
+			{% block header %}		
+				<nav class="nav joker">
+					<div class="nav__brand animate__animated animate__flash">
+						<h3 class="mb-0">Dev K</h3>
+					</div>
+					<div class="nav-container">
+						<ul>
+							<li class="{{ current_uri.path == '/b64' ? 'nav__item active' : 'nav__item' }}">
+								<a class="nav__link" href="{{ path_for('b64') }}">B64</a>
+							</li>
+							<li class="{{ current_uri.path == '/zc' ? 'nav__item active' : 'nav__item' }}"> 
+								<a class="nav__link" href="{{ path_for('zc') }}">Zcode</a>
+							</li>				
+							<li class="{{ current_uri.path == '/contrastchecker' ? 'nav__item active' : 'nav__item' }}">
+								<a class="nav__link" href="{{ path_for('contrastchecker') }}">Contrast</a>
+							</li>
+							<li class="{{ current_uri.path == '/resources' ? 'nav__item active' : 'nav__item' }}">
+								<a class="nav__link" href="{{ path_for('resources') }}">Ressources</a>
+							</li>
+							<li class="nav__item">
+								<a class="nav__link" href="http://konticrea.kontikimedia.fr" target="_blank">Konticrea</a>						
+							</li>
+							<li class="nav__item">
+								<a class="nav__link" href="http://kreatiki.com/login" target="_blank">Kreatiki</a>
+							</li>
+							<li class="nav__item">
+								<a class="nav__link" href="http://stats.kontikimedia.com/" target="_blank">Stats</a>
+							</li>					
+							<!-- <li class="nav__item">
+								<a class="nav__link" href="http://testim.kontikimedia.fr/teamtool" target="_blank">Teamtool</a>
+							</li>					 -->
+						</ul>
+					</div>
+				</nav>
+			{% endblock %}
+		</header>
+
+		{% block app %}
+		<main id="app" class="bg app-content">
+			{% block content %}
+				<section class="container-fluid">
+					<h1 class="display-5 mt-2 d-flex align-items-center">
+						<img class="avatar mr-3" src="./assets/images/logo.png" alt="B64" />
+						<span class="text-white">Outil de conversion</span>
+					</h1>
+					<!-- <input type="checkbox" id="reverse" v-model="encode"> -->
+					<h4>Mode disponibles:</h4>
+					<select name="" id="" class="form-control" v-model="mode">
+						<option value="b64-to-utf8">Conversion Base64 vers UTF-8</option>
+						<option value="utf8-to-b64">Conversion UTF-8 vers Base64</option>
+						<option value="url-encode">Encodage d'URI souple (A-Z a-z 0-9 ; , / ? : @ & = + $ - _ . ! ~ * ' ( ) #)</option>
+						<option value="url-decode">Décodage d'URI souple (A-Z a-z 0-9 ; , / ? : @ & = + $ - _ . ! ~ * ' ( ) #)</option>
+						<option value="url-encode-full">Encodage d'URI complète (encode tout)</option>
+						<option value="url-decode-full">Décodage d'URI complète (décode tout)</option>
+						<option value="html-entities">Encoder/décoder caractères HTML</option>
+						<option value="iso-latin-1">Encoder/décoder caractères ISO-8859-1</option>
+					</select>			
+					<div class="command-bar joker command-bar--detached">
+						<transition
+							enter-active-class="animate__animated animate__bounceInLeft"
+							leave-active-class="animate__animated animate__bounceOutLeft"
+						>
+							<div class="group" v-if="mode === 'html-entities'">
+								<button class="group__item btn btn-sm bg-white" @click.prevent="setHTMLEntities('encode')">Encoder caractères HTML</button>
+								<button class="group__item btn btn-sm bg-white" @click.prevent="setHTMLEntities('decode')">Décoder caractères HTML</button>					
+							</div>
+							<div class="group" v-if="mode === 'iso-latin-1'">
+								<button class="group__item btn btn-sm bg-white" @click.prevent="setIsolatin">Convertir Iso latin 1 en UTF-8</button>						
+							</div>
+						</transition>
+					</div>	
+
+					<div class="row">
+						<div class="col-md-6 col-12 mb-2 workspace">
+							<!-- Input your string here -->
+							<textarea class="form-control workspace-txt" name="" id="" v-model="msg" :placeholder="helpMsg"></textarea>
+						</div>
+						<div class="col-md-6 col-12 mb-2 workspace">
+							<!-- Get result here -->
+							<textarea class="form-control workspace-txt" name="" id="" v-model="result" placeholder="Résultat" ref="area-result"></textarea>
+							<button class="btn btn-sm mt-3 btn" @click="copy('area-result')">
+								<i class="fas fa-copy primary--text fa-2x"></i>
+							</button>
+						</div>
+					</div>		
+				</section>
+			{% endblock %}
+		</main>
+		{% endblock %}
+		{% block footer %}
+			<footer class="footer joker">
+			    <div class="footer-container">
+			        <div class="footer-service bloc">
+			            <span>&copy; Dev Kontiki</span>
+			        </div>
+			        <div class="footer-social bloc">
+			            <div class="footer-social__title">
+			                <i class="fab fa-github fa-2x"></i>
+			                <h5 class="ml-2">Retrouvez nous sur Github</h5>
+			            </div>
+			            <div class="footer-social__list">
+			                <ul>
+			                    <li>
+			                        <a class="primary--text--dark" href="https://github.com/harry-kontiki" target="_blank"><span class="ml-2">Harry (Développeur Fullstack)<span></a>
+			                    </li>
+			                    <li>
+			                        <a class="primary--text--dark" href="#" target="_blank"><span class="ml-2">André (Administrateur système)<span></a>
+			                    </li>
+			                    <li>
+			                        <a class="primary--text--dark" href="https://github.com/Timmyway" target="_blank"><span class="ml-2">Tim (Développeur Front-end et Desktop)<span></a>
+			                    </li>                    
+			                </ul>
+			            </div>			
+			        </div>
+			    </div>
+			</footer>
+
+			<!-- Vue -->
+			<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+			    <!-- Axios -->
+			<!-- <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script> -->
+			    <!-- Fontawesome -->
+			<script src="https://kit.fontawesome.com/7f150bd29b.js" crossorigin="anonymous"></script>
+			    <!-- App script -->
+			<script src="{{ base_url() }}/assets/js/script.js"></script>
+			<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+		{% endblock %}
+		{% block vue %}{% endblock %}
+	</body>
+</html>

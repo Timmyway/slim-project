@@ -1,0 +1,122 @@
+:root {
+  	--main-dark-color: #212738;
+  	--main-light-color: #FF91C8;
+  	--main-joker-color: #E1B8FC;
+  	--nav-height: 60px;
+}
+body, html, ul {padding: 0!important; margin: 0!important;}
+li {list-style-type: none}
+#app {
+	color: white;
+	font-family: 'Noto Serif', serif;
+}
+h1, h2, h3 {
+	font-family: 'Press Start 2P', cursive;
+}
+.primary {background: var(--main-light-color);}
+.primary--text {color: var(--main-light-color);}
+.primary--text--dark {color: var(--main-dark-color);}
+.joker {background: var(--main-joker-color);}
+body {
+	background: #212738 !important;
+	padding: 15px;
+}
+
+/* .sidebar--left {
+	position: fixed; 
+	top: 0; left: 0; 
+	width: 10%; max-height: 95vh; 
+	overflow: auto	
+} */
+.sidebar--left textarea {
+	border-radius: 0px 0px 4px 4px;
+}
+
+.avatar {
+	vertical-align: middle;
+	width: 48px;
+	height: 48px;
+	border-radius: 50%;
+}
+.footer {
+	position: fixed;
+	bottom: 0;
+	width: 100%;
+	line-height: 1.7; /* Vertically center the text there */
+	padding: 5px;
+	display: flex;
+	align-items: center;
+}
+.header {
+	height: var(--nav-height);
+}
+.nav ul {
+	display: flex;
+	flex-direction: row;
+	align-items: center;						
+	height: var(--nav-height);
+}
+.nav ul li {
+	list-style-type: none; margin: 0 10px;
+	font-size: 1.2rem;
+}
+.nav .nav__link {color: var(--main-dark-color); font-weight: bold}
+.nav-container {
+	width: 100%;
+}
+
+.btn--top-right {
+	position: absolute; top: 0%; right: 0%
+}
+.btn-top-right--v2 {
+	position: absolute; top: 4%; right: 2%
+}
+
+.grid-area-sidebar { grid-area: sidebar;}
+.grid-area-workspace { grid-area: workspace; }
+.grid-area-conversion { grid-area: conversion; }
+
+.app-grid {
+	display: grid;	
+	grid-template:
+    'sidebar workspace workspace workspace'
+    'sidebar workspace workspace workspace'
+    'sidebar conversion conversion conversion';
+}
+
+@media screen and (max-width: 768px) {
+	.app-grid {
+		display: grid;	
+		grid-template:
+		'sidebar'
+		'workspace'
+		'conversion';
+	}
+	.app-command {
+		background: pink;
+		display: flex;
+		flex-direction: column;
+	}
+	.app-command textarea {
+		height: 160px !important;
+		max-height: 280px !important;
+	}	
+	.sidebar--left {
+		position: static;
+		width: 100%;		
+		background: green!important
+	}
+	.sidebar--left textarea {
+		height: 240px !important;
+	}
+	#txtOutputConverter {
+		height: 320px !important;
+		max-height: 480px !important;
+	}
+}
+@media screen and (max-width: 360px) {
+	.command-bar {
+		background: red;
+		width: 100%;
+	}
+}

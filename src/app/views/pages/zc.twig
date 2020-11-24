@@ -1,0 +1,285 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="p-4 app-grid">
+	<div class="bar__view grid-area-sidebar">
+		<!-- <button class="btn btn-sm bg-white" @click.prevent="view.selection = !view.selection">Selection</button>
+		<button class="btn btn-sm bg-white" @click.prevent="view.main = !view.main">Main</button> -->
+		<aside class="sidebar--left">
+			<textarea name="" id="" class="textarea" 
+				v-model="rangeNumber.generated" 
+				style="height: 100vh;" 
+				placeholder="Generated numbers"
+			></textarea>
+			<button class="btn btn-sm bg-white mt-2" @click.prevent="quickSearch">Filter</button>
+		</aside>
+	</div>
+	<div class="grid-area-workspace" v-if="view.main">
+		<div class="container">		
+			<span class="tag is-info text-white">Total zipcodes: [[ zipcodes.length ]]</span>
+			<span :class="['tag', filteredFormated.length > 0 ? 'is-success' : 'is-warning', shake ? 'animate__animated animate__wobble' : '']">Found: [[ filteredFormated.length ]]</span>
+		</div>
+		<div>
+			<div class="mt-2 d-flex app-command">
+				<!--Command bar-->
+				<div class="command-bar mr-3 d-flex mb-2 align-items-center flex-wrap">
+					<div class="d-flex mr-1 joker has-border-radius p-1">
+						<div class="mr-2">
+							<input class="form-control" type="number" placeholder="From" v-model="rangeNumber.from" min="0" max="99">
+						</div>
+						<div class="mr-2">
+							<input class="form-control" type="number" placeholder="To" v-model="rangeNumber.to"  min="0" max="99">
+						</div>
+						<div class="d-flex align-items-center">
+							<div class="form-check form-check-inline mr-2">
+								<label class="form-check-label mr-1" for="chk-append">Append</label>
+								<input class="form-check-input" id="chk-append" type="checkbox" v-model="rangeNumber.appendMode">
+							</div>
+							<div class="form-check form-check-inline mr-2">
+								<label class="form-check-label mr-1" for="chk-strict">Strict</label>
+								<input class="form-check-input" id="chk-strict" type="checkbox" v-model="rangeNumber.isStrict">
+							</div>
+						</div>
+						<button class="btn btn-sm bg-white" @click.prevent="generateZcode">Generate</button>
+					</div>
+					<!-- Split command -->
+					<div class="d-flex mr-1 text-black joker has-border-radius p-1">
+						<div class="d-flex align-items-center mx-2">
+							<span>From</span>
+						</div>
+						<div class="select">
+							<select class="form-control" name="" id="" v-model="separator.from">
+								<option value=",">Comma</option>
+								<option :value="/\r?\n/">Newline</option>
+							</select>						
+						</div>
+						<div class="d-flex align-items-center px-2">
+							<span>To</span>
+						</div>
+						<div class="select">						
+							<select class="form-control" name="" id="" v-model="separator.to">
+								<option value=",">Comma</option>
+								<option value="/\r?\n/">Newline</option>
+							</select>
+						</div>
+						<button class="btn btn-sm bg-white ml-2" @click.prevent="splitZcode">Split</button>
+					</div>
+				</div>
+			</div>
+
+			<div class="form-group">
+				<input class="form-control" type="text" placeholder="Comma separated zipcodes" v-model="q" @keyup.enter="filterZcode">
+			</div>
+
+			<div class="form-group">
+				<textarea class="form-control" ref="result-area" name="" id="" cols="30" rows="10" v-model="filteredFormated"></textarea>
+			</div>
+		</div>
+		
+		<div class="mt-2">
+			<button class="btn btn-sm bg-white" @click.prevent="filterZcode">Filter</button>
+			<button class="btn btn-sm bg-white" @click.prevent="copyToClipboard('result-area')">Copy</button>			
+		</div>
+	</div>
+
+	<div class="sidebar--right" v-if="filteredFormated">
+		<div class="btn-icon" @click="view.sidebarResult = !view.sidebarResult">
+			<span>[[ view.sidebarResult ? '🔽' : '🔼' ]]</span>
+		</div>
+		<transition
+			enter-active-class="animate__animated animate__bounceInDown"
+			leave-active-class="animate__animated animate__bounceOutUp"
+		>
+			<ul v-if="view.sidebarResult">
+				<li class="badge mt-1 text-white" 
+					v-for="cp in filteredFormated" :key="cp" 
+					:style="{background: colors[String(cp).slice(0, 1)]}"
+				>[[ cp ]]</li>
+			</ul>
+		</transition>
+	</div>		
+
+	<!-- Conversion \n => , -->		
+	<div class="grid-area-conversion" v-if="view.selection">
+		<div class="bar__command mb-2">
+			<span :class="['badge', txtOutput.converted.split(separator.to).length > 0 ? 'is-success' : 'is-warning', shake ? 'animate__animated animate__wobble' : '']">Total Found: [[ txtOutput.converted.split(separator.to).filter(function (x) { return x != ""; }).length ]]</span>
+			<span :class="['badge', selectedZipcodes.length > 0 ? 'is-success' : 'is-warning', shake ? 'animate__animated animate__wobble' : '']">Found: [[ selectedZipcodes.length ]]</span>
+		</div>
+		<textarea class="form-control" ref="txtOutputConverter" rows="30" name="" id="txtOutputConverter" placeholder="Conversion" v-model="txtOutput.converted" @select="onZipcodesSelected"></textarea>
+	</div>
+</div>
+{% endblock %}
+
+	{% block vue %}
+		<script src="{{ base_url() }}/assets/js/zipcode.js"></script>
+		<script>
+			var vm = new Vue({
+				el: '#app',
+				delimiters: ['[[', ']]'],
+				data() {
+					return {
+						view: {
+							selection: true,
+							main: true,
+							sidebarResult: false
+						},
+						selectedZipcodes: '',
+						zipcodes: window.zipcodes,
+						separator: {
+							from: /\r?\n/,
+							to: ','
+						},
+						q: '',
+						txtOutput: {
+							converted: ''
+						},
+						colors: {"0": '#4E1658',
+							"1": '#8F0937',
+							"2": '#6F237C',
+							"3": '#1A1658',
+							"4": '#00acc1',
+							"5": '#00897b',
+							"6": '#853F01',
+							"7": '#546e7a',
+							"8": '#880e4f',
+							"9": '#6d4c41',
+						},
+						rangeNumber: {
+							from: 10,
+							to: 99,
+							appendMode: true,
+							isStrict: true,
+							generated: []
+						},
+						shake: false,
+						filtered: [],
+						regexPattern: null
+					}
+				},
+				mounted() {
+					console.log('Zcodes: ', this.zipcodes);
+				},
+				computed: {
+					filteredFormated: {
+						get() {
+							const f = this.filtered.map((item) => {
+								return item.code_postal;
+							});
+							return f;
+						},
+						set(newValue) {
+							return newValue;
+						}
+					},				
+				},
+				methods: {				
+					onZipcodesSelected() {					
+						const textArea = this.$refs.txtOutputConverter;					
+						const indexStart = textArea.selectionStart;
+						const indexEnd = textArea.selectionEnd;
+						console.log('Indexes: ', indexStart, indexEnd)
+						const result = this.txtOutput.converted.substring(indexStart, indexEnd)
+						this.selectedZipcodes = result.split(this.separator.to).filter(function (x) { return x != ""; })
+						this.shake = true;
+						setTimeout(() => {
+							this.shake = false;
+						}, 1000)				
+					},
+					generateZcode() {
+						if (this.rangeNumber.generated === '') {
+							this.rangeNumber.generated = [];
+						}
+						if (!this.rangeNumber.appendMode) {
+							this.rangeNumber.generated = [];
+						}
+						this.range(this.rangeNumber.from, this.rangeNumber.to).map(item => {
+							this.rangeNumber.generated.push(item)
+						})					
+					},
+					splitZcode() {
+						if (this.rangeNumber.generated === '') {
+							this.rangeNumber.generated = [];
+						}
+						this.txtOutput.converted = [];
+						console.log('Type: ', typeof this.rangeNumber.generated)
+						if (typeof this.rangeNumber.generated !== 'string') {
+							this.rangeNumber.generated = String(this.rangeNumber.generated)
+						}
+						// Split the string by separator (from), then drop empty values
+						let splitedZipcodes = [... new Set(this.rangeNumber.generated.split(this.separator.from).filter(function (x) { return x != ""; }))];
+						while (splitedZipcodes.length > 0) {
+							chunk = splitedZipcodes.splice(0,300)			
+							this.txtOutput.converted.push(chunk.join(this.separator.to));
+						}					
+						this.txtOutput.converted = this.txtOutput.converted.join(',\n\n')
+						// console.log('Output', this.txtOutput.converted)
+						console.log('From separator: ', this.separator.from)
+						console.log('To separator: ', this.separator.to)
+					},
+					quickSearch() {
+						this.q = [...this.rangeNumber.generated].join(',');
+						this.filterZcode();					
+					},
+					filterZcode() {					
+						if (this.q.length < 2 || !this.q) {
+							return
+						}
+						const temp = String(this.q).split(',');
+						this.regexPattern = '^' + temp.join('|^').replace(/\s/g, '') + '\\d+';
+
+						this.filtered = this.zipcodes.filter((item) => {
+							const regex = new RegExp(this.regexPattern, 'g');
+							if (this.rangeNumber.isStrict) {
+								return String(item.code_postal).match(regex) && String(item.code_postal).length === 5	
+							} else {
+								return String(item.code_postal).match(regex)
+							}
+							
+						});
+						this.view.sidebarResult = true;
+						this.shake = true;
+						setTimeout(() => {
+							this.shake = false;
+						}, 1000)
+					},
+					range(start, end) {
+					    var ans = [];
+					    for (let i = start; i <= end; i++) {
+					    	console.log('----------------->', String(i).length)
+					    	if (String(i).length === 1) {
+					    		i = '0' + String(i);
+					    		console.log('==================>')
+					    	}
+					        ans.push(i);
+					    }
+					    return ans;
+					},
+					copyToClipboard(element) {
+						/* Select the text field */
+						console.log(element)
+						const copyText = this.$refs[element];					
+						copyText.select();
+						copyText.setSelectionRange(0, 99999); /*For mobile devices*/
+
+						/* Copy the text inside the text field */
+						document.execCommand("copy");
+					},
+					fetchEncrypt() {
+						if (!this.form.input) {
+							console.log('Nothing to encrypt...save api call');
+							return
+						}
+						axios.post('http://localhost:5000/pwd/encrypt', {
+							toEncrypt: this.form.input					
+						})
+						.then((response) => {						
+							this.form.output = response.data.encrypted;
+							this.form.key = response.data.key;
+						})
+						.catch((error) => {
+							console.log(error);
+						});
+					}
+				}
+			})
+		</script>
+	{% endblock %}

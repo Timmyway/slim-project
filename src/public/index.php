@@ -32,17 +32,26 @@ $container['db'] = function ($c) {
 };
 
 $app = new \Slim\App(['settings' => $config]);
+
+require('../app/container.php');
+
 // Alter the request
-$app->add(new DemoMiddleware());
+// $app->add(new DemoMiddleware());
 
-$app->get('/', \App\Controllers\PagesController::class . ':home');
+$app->get('/', \App\Controllers\PagesController::class . ':home')->setName('home');
+$app->get('/b64', \App\Controllers\PagesController::class . ':b64')->setName('b64');
+$app->get('/zc', \App\Controllers\PagesController::class . ':zc')->setName('zc');
+$app->get('/contrastchecker', \App\Controllers\PagesController::class . ':contrastchecker')->setName('contrastchecker');
+$app->get('/resources', \App\Controllers\PagesController::class . ':resources')->setName('resources');
+$app->post('/api/hentities', \App\Controllers\PagesController::class . ':encodeEntities');
+$app->post('/api/isolatin', \App\Controllers\PagesController::class . ':convertIsolatin');
 
-$app->get('/users', function (Request $request, Response $response) {    
-    $mapper = new UserMapper($this->db);
-    $users = $mapper->getUsers();
+// $app->get('/users', function (Request $request, Response $response) {    
+//     $mapper = new UserMapper($this->db);
+//     $users = $mapper->getUsers();
 
-    $response->getBody()->write(var_export($tickets, true));
-    return $response;
-});
+//     $response->getBody()->write(var_export($tickets, true));
+//     return $response;
+// });
 
 $app->run();

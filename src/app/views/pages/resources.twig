@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+{% block content %}
+<input type="text" class="form-control mt-1" v-model="searchService" placeholder="Chercher un service">
+<div class="cards-galery">
+    <div class="card" style="width: 18rem;" v-for="(card,index) in filteredCards" :key="index">
+        <div class="card-body">
+            <h5 class="card-title font-weight-bold">{{ card.title }}</h5>
+            <p class="card-text">{{ card.description }}</p>
+            <div class="card__links">
+                <a :href="service.url" class="btn btn-primary btn-sm mb-1" v-for="service in card.urls" :key="service.name" target="_blank">Visiter {{ service.name }}</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+{% block vue %}
+<script>
+    var vm = new Vue({
+        el: '#app',
+        data() {
+            return {
+                searchService: '',
+                cards: [
+                    {"title": "Caractères HTML", "description": "Référence concernant les caractères HTML", 
+                        "urls": [
+                            {"title": "Freeformatter", "url": "https://www.freeformatter.com/html-entities.html"}
+                        ]
+                    },
+                    {"title": "Inliner", "description": "Services permettant d'inliner le CSS", 
+                        "urls": [
+                            {"name": "Campaignmonitor", "url": "https://www.campaignmonitor.com/resources/tools/css-inliner/"}, 
+                            {"name": "Litmus", "url": "https://putsmail.com/inliner"}
+                        ]
+                    },
+                    {"title": "Expertsender", "description": "Service de routage d'email", 
+                        "urls": [
+                            {"name": "Service 2", "url": "https://service2.esv2.com"},
+                            {"name": "Service 3", "url": "https://service3.esv2.com"},
+                            {"name": "Service 4", "url": "https://service4.esv2.com"},
+                            {"name": "Service 5", "url": "https://service5.esv2.com"},
+                            {"name": "Service 6", "url": "https://service6.esv2.com"},
+                            {"name": "Service 7", "url": "https://service7.esv2.com"},
+                        ]
+                    },
+                    {"title": "Emoji", "description": "Site d'Emoji", 
+                        "urls": [
+                            {"name": "Getemoji", "url": "https://getemoji.com/"},
+                            {"name": "Emoji copy", "url": "https://www.emojicopy.com/"},
+                            {"name": "Piliapp", "url": "https://fr.piliapp.com/emoji/list/"},
+                            
+                        ]
+                    },                    
+                ]
+            }
+        },
+        computed: {
+            filteredCards() {
+                if (this.searchService.length < 2) {
+                    return this.cards;
+                }
+                console.log('Pattern', this.searchService);
+                const filtered = this.cards.filter((item) => {
+                    return item.title.toLowerCase().indexOf(this.searchService.toLowerCase()) > -1
+                })
+                console.log('Filtered Value: ', filtered);
+                if (filtered.length > 0) {
+                    return filtered;
+                    console.log('Filtered exists')
+                } else {
+                    console.log('Nothing')
+                    return this.cards;
+                }                
+            }
+        }
+    });
+</script>
+{% endblock %}
