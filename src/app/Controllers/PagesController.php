@@ -18,6 +18,26 @@ class PagesController extends Controller
 		$this->render($response, 'pages/zc.twig');
 	}
 
+	public function postContact(RequestInterface $request, ResponseInterface 
+		$response) {		
+		$message = (new \Swift_Message('Message de contact'))
+		->setFrom([$request->getParam('email') => $request->getParam('firstname')])
+		->setTo('noreply-to-tim@kontikimedia.fr')
+		->setBody("Un message vous a été envoyé: 
+			{$request->getParam('msg')}"
+		);
+		$mailer = $this->mailer();
+		$mailer->send($message);
+		$this->flash('Votre message a bien été envoyé');
+		return $this->redirect($response, 'contact');
+	}
+
+	public function contact(RequestInterface $request, ResponseInterface $response) {
+		$flash = $_SESSION['flash'] ?? [];		
+		$this->render($response, 'pages/contact.twig', ['flash' => $flash]);
+		$_SESSION['flash'] = [];
+	}
+
 	public function contrastchecker(RequestInterface $request, ResponseInterface $response) {		
 		$this->render($response, 'pages/contrastchecker.twig');
 	}
